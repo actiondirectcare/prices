@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action Medicine — Price Lookup</title>
+<style>
+  :root{
+    --ink:#13343b;
+    --ink-soft:#4a6770;
+    --teal:#0e6e6e;
+    --teal-deep:#0a4f52;
+    --teal-tint:#e3f1ef;
+    --paper:#f7faf9;
+    --card:#ffffff;
+    --line:#d8e6e3;
+    --coral:#e2643f;
+    --coral-soft:#fdeee8;
+    --gold:#f2b441;
+    --radius:18px;
+    --shadow:0 2px 10px rgba(14,79,82,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Avenir Next","Segoe UI",Seravek,system-ui,-apple-system,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input{font:inherit}
+
+  /* ---------- Header ---------- */
+  header{
+    background:linear-gradient(135deg,var(--teal-deep) 0%,var(--teal) 70%);
+    color:#fff;
+    padding:22px 20px 26px;
+  }
+  .head-inner{max-width:860px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .brand-logo{
+    width:48px;height:48px;border-radius:50%;flex-shrink:0;
+    box-shadow:0 2px 8px rgba(0,0,0,.22);
+  }
+  .gear-wrap{position:relative;margin-left:4px}
+  .gear-btn{
+    width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;color:#fff;position:relative;
+  }
+  .gear-btn:hover{background:rgba(255,255,255,.26)}
+  .gear-btn.on{background:var(--gold);color:#4a3403}
+  .gear-btn .dot{
+    position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;
+    background:var(--coral);border:2px solid var(--teal-deep);display:none;
+  }
+  body.dirty .gear-btn .dot{display:block}
+  .menu{
+    position:absolute;right:0;top:50px;background:#fff;color:var(--ink);
+    border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.25);padding:8px;
+    min-width:240px;display:none;z-index:60;
+  }
+  .menu.open{display:block}
+  .menu button{
+    display:flex;width:100%;align-items:center;gap:10px;padding:11px 12px;
+    border-radius:9px;font-size:.92rem;font-weight:600;color:var(--ink-soft);text-align:left;
+  }
+  .menu button:hover{background:var(--teal-tint);color:var(--teal-deep)}
+  .menu button.active{background:var(--teal);color:#fff}
+  .menu button.menu-danger{color:var(--coral)}
+  .menu button.menu-danger:hover{background:var(--coral-soft);color:var(--coral)}
+  .menu hr{border:none;border-top:1px solid var(--line);margin:6px 4px}
+  .menu .badge{
+    margin-left:auto;background:var(--coral);color:#fff;font-size:.68rem;font-weight:700;
+    padding:2px 8px;border-radius:999px;display:none;
+  }
+  body.dirty .menu .badge{display:inline-block}
+  .brand h1{font-size:1.25rem;font-weight:600;letter-spacing:.01em;line-height:1.2}
+  .brand .sub{font-size:.8rem;opacity:.75;font-weight:400}
+  .updated-chip{
+    margin-left:auto;background:var(--gold);color:#4a3403;font-weight:700;
+    font-size:.84rem;padding:7px 14px;border-radius:999px;display:flex;align-items:center;gap:7px;
+    box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;
+  }
+  body.dirty .updated-chip{background:var(--coral);color:#fff}
+  .searchbar{position:relative}
+  .searchbar svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);opacity:.55}
+  #search{
+    width:100%;padding:14px 44px 14px 48px;border:none;border-radius:14px;
+    font-size:1.05rem;background:#fff;color:var(--ink);outline:none;
+    box-shadow:0 3px 14px rgba(0,0,0,.18);
+  }
+  #search::placeholder{color:#8aa6a4}
+  #clearSearch{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    width:32px;height:32px;border-radius:50%;color:#5c7d7b;display:none;
+    align-items:center;justify-content:center;font-size:1.2rem;line-height:1;
+  }
+  #clearSearch:hover{background:#eef5f4}
+
+  /* ---------- Layout ---------- */
+  main{max-width:860px;margin:0 auto;padding:20px 16px 64px}
+  .hidden{display:none !important}
+
+  /* ---------- Notice box / settings ---------- */
+  .notice{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;
+    font-size:.92rem;color:var(--ink-soft);line-height:1.5;
+  }
+  .notice .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .notice input{
+    border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:.92rem;outline:none;
+    flex:1;min-width:140px;
+  }
+  .notice input:focus{border-color:var(--teal)}
+  .notice label{font-size:.78rem;font-weight:700;color:var(--ink-soft);display:block;margin:8px 0 3px}
+  .notice .fine{font-size:.78rem;color:#8aa19e;margin-top:8px;line-height:1.45}
+
+  /* ---------- Tiles ---------- */
+  .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:6px}
+  .tile{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 16px;display:flex;align-items:center;gap:14px;text-align:left;
+    box-shadow:var(--shadow);transition:transform .12s ease,box-shadow .12s ease;
+    border-left:6px solid var(--tile-c,var(--teal));position:relative;
+  }
+  .tile:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(14,79,82,.14)}
+  .tile:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+  .tile-icon{
+    width:52px;height:52px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    background:var(--tile-bg,var(--teal-tint));color:var(--tile-c,var(--teal));
+  }
+  .tile-name{font-weight:600;font-size:1.02rem;line-height:1.25}
+  .tile-count{font-size:.8rem;color:var(--ink-soft);margin-top:3px}
+  .tile.add-cat{border:1.5px dashed var(--line);border-left:1.5px dashed var(--line);box-shadow:none;color:var(--ink-soft);display:none}
+  body.editing .tile.add-cat{display:flex}
+  .tile.add-cat:hover{border-color:var(--teal);color:var(--teal-deep)}
+  .addcat-form{
+    display:none;margin-top:14px;gap:8px;flex-wrap:wrap;background:var(--card);
+    border:1.5px dashed var(--line);border-radius:14px;padding:13px;align-items:center;
+  }
+  .addcat-form.open{display:flex}
+  .addcat-form input{
+    flex:1;min-width:180px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:.95rem;outline:none;
+  }
+  .addcat-form input:focus{border-color:var(--teal)}
+
+  /* ---------- Category & search views ---------- */
+  .view-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .back-btn{
+    display:flex;align-items:center;gap:6px;color:var(--teal-deep);font-weight:600;
+    padding:8px 14px 8px 8px;border-radius:10px;
+  }
+  .back-btn:hover{background:var(--teal-tint)}
+  .view-title{font-size:1.3rem;font-weight:700;flex:1;min-width:160px;display:flex;align-items:center;gap:10px}
+  .cat-dot{width:14px;height:14px;border-radius:5px;flex-shrink:0}
+  .item-list{display:flex;flex-direction:column;gap:10px}
+  .item{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);
+  }
+  .item.flash{animation:flash 1.6s ease}
+  @keyframes flash{0%,40%{background:#fff7df;border-color:var(--gold)}100%{background:var(--card)}}
+  .item-main{flex:1;min-width:0}
+  .item-name{font-weight:600;font-size:1.02rem}
+  .item-note{font-size:.84rem;color:var(--ink-soft);margin-top:2px;line-height:1.35}
+  .item-cat{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+  .price{
+    font-weight:700;font-size:1.06rem;
+    padding:6px 13px;border-radius:999px;white-space:nowrap;
+  }
+  .price.contact{background:var(--coral-soft) !important;color:var(--coral) !important;font-size:.88rem}
+  .cat-note{
+    background:#fff8ea;border:1px solid #f0dfb4;border-radius:12px;padding:11px 14px;
+    font-size:.88rem;color:#6a5618;margin-bottom:14px;line-height:1.45;
+  }
+  .group-head{
+    font-size:.95rem;font-weight:700;margin:18px 0 4px;display:flex;align-items:center;gap:8px;
+  }
+  .group-head:first-child{margin-top:0}
+  .empty-msg{
+    text-align:center;color:var(--ink-soft);padding:36px 16px;font-size:.95rem;line-height:1.5;
+  }
+
+  /* ---------- Edit mode ---------- */
+  .item-actions{display:none;gap:6px}
+  body.editing .item-actions{display:flex}
+  .icon-btn{
+    width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);border:1px solid var(--line);background:#fff;
+  }
+  .icon-btn:hover{background:var(--teal-tint);color:var(--teal-deep)}
+  .icon-btn.danger:hover{background:var(--coral-soft);color:var(--coral)}
+  .add-row,.danger-zone{display:none}
+  body.editing .add-row{display:flex}
+  body.editing .danger-zone{display:block}
+  .add-row{
+    margin-top:14px;gap:8px;flex-wrap:wrap;background:var(--card);
+    border:1.5px dashed var(--line);border-radius:14px;padding:13px;
+  }
+  .add-row input{
+    border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:.95rem;outline:none;background:#fff;
+  }
+  .add-row input:focus{border-color:var(--teal)}
+  .in-name{flex:2;min-width:150px}
+  .in-price{flex:1;min-width:90px;max-width:130px}
+  .in-note{flex:2;min-width:150px}
+  .btn{padding:10px 18px;border-radius:10px;font-weight:600;font-size:.92rem}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teal-deep)}
+  .btn-primary:disabled{opacity:.6;cursor:default}
+  .btn-ghost{border:1px solid var(--line);background:#fff;color:var(--ink-soft)}
+  .btn-danger{background:var(--coral);color:#fff}
+  .danger-zone{margin-top:26px;text-align:center}
+  .link-danger{color:var(--coral);font-size:.86rem;font-weight:600;text-decoration:underline}
+  .confirm-inline{
+    display:flex;gap:8px;justify-content:center;align-items:center;margin-top:10px;flex-wrap:wrap;
+    font-size:.9rem;color:var(--ink-soft);
+  }
+
+  .item.editing-item{flex-wrap:wrap}
+  .item.editing-item .edit-fields{display:flex;gap:8px;flex-wrap:wrap;flex:1 1 100%}
+  .edit-fields input{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:.93rem;outline:none}
+  .edit-fields input:focus{border-color:var(--teal)}
+
+  @media (max-width:560px){
+    .tile-grid{grid-template-columns:1fr 1fr;gap:10px}
+    .tile{flex-direction:column;text-align:center;padding:16px 10px;gap:10px;border-left:1px solid var(--line);border-top:6px solid var(--tile-c,var(--teal))}
+    .tile.add-cat{border:1.5px dashed var(--line)}
+    .tile-name{font-size:.92rem}
+    .price{font-size:.98rem;padding:5px 11px}
+    .updated-chip{margin-left:auto;order:3;width:100%;justify-content:center}
+    .gear-wrap{margin-left:auto}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tile{transition:none}
+    .item.flash{animation:none;background:#fff7df}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="brand">
+      <img class="brand-logo" alt="Action Medicine DPC — Healthcare Simplified" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AABBHElEQVR42t29d3wUVfs+fJ2Zrekhnd4JCaGFqkAAadIFQq8qKCAgCigiYGwIKCqKKBYUFZAoCAhIldCLdBJKSEghCel1s2XmnPv9Y3Y3wfI8+lX0+b2j+4FP2Mycudu563UY/s1r6VIpNimSxeclMiTEqa4fxyzd4mXUcf/Su3ca2Sr5MGGzQLHb4XAoDxGkCIfNIUBcUhQBDkDHGHR6JiS9UZIYJclMHDR6eEBn9oGHmW0NbRKeYjApxfFPjaxwPzsmRofgYEJEBCEuTvxbJGD/ylNjY2UAQHw8d/2o45y36ysWW3eHTX3QWlLcyWK1N7GVWwycTIyrVjAGGEjAw6SH2WiAp9kESAJEBEaAQyVU2O2w2TgcqgpVJQidCRK3k8nT7PAwG5I9/PxOeXpJx4NCQw/vXT49rdqCZMTeu57/fzIgdouM+JECAGlEX1ufWy0dLcWlY0sKC3tXltvNisKhJxW1gmqgSb1QNG0crDZuUIs1rh9KAV5eso+3B/P0NMHTbIZOJ4ERQQig0u6A1WZHeXkllVfaeE5eEUtJzaSbaXm61PQ8pObkI7/YDjtTYTDA6uPrt79GkM/GsCaBp/fGzU1z0yM2VvonGcH+DcK3mbZskK3E8nR5UWnbslKHn2qzI8RPh45RTUW3juGiY5umUv06IayGn99vro8IYAwQAAQnAAKyxMCY9DsLEHQ3L59upOaKY2cSpZMXr0uXb95FUbkNkoQSvwC/84HBXu9c2vz6TkH/LCPYfTc11V6i7eOvD7SUlM8vLijtVlZQBn9vE3p2bM4f6d0eXTpESCGBAe71CKFCJYIEBkmSITH2C5IKSL9BcAfnkKq9GEFAliQwJt/DwzvZd8XBI1ew88g5+eT5FJRarPDyNB8JCfZZefWHVT84GfGrd/h/gwFELLrdE7pz59YpYAytpy0fYi0seqY4q6hbebEVzRr48wmPdMXw/l2kerVC3WtQOQcRoNfdQyyUlZUjOS0LBaVluJtfCnAVk2L74dqtdHz+7QEEBvihTkgAej7QCsGBNUAkwAUBIOhkHYgInAvonPdVOYdOdj+DUjOyxJYdR7Dpx5/llLQ8GI2mI3Vr+a26vOut7UIQoqOn6c+d+0gFGOF//lq61C2WLSa/3r/lqBcTgrvNIGPkWOoyfD7fvPMQt9ls5LpUVXX/nQtBXAj66cTP9OLydbT78GkiItp16ATpmwylRt2mUpu+02nU1JeISND2Q6cIQf2pdf+51KzL49Swy2OUmHybiIi2bP+JontMo2vJqSSEICKivMIiupObS0REQghSFJUUVXE/v8xSwT/Z/CNv98izZI4YS0EdpiZED5nd/7fe7X/zilmqA4DI6W/WaTXu5ZX1es5WzRFjqc3Ds9RN2w9whWsvK0iQQ1GJc0F2u4NSUu/QkVMXiYjI7rBT+0HPELx70pOL1xAR0bEzlwj1htCG745Q9Wv7/uOkqzuYTp5PpNy8AmJ1h9LMlz4gIqJFb31OqDOEEm+mERHR6g3bKbjNWPJvOYpmLPmA7A4Hcc7d91KUKkZYrBb+8aZdapsB88jULFYNe+CxlX0mP1PH7b7+jZf0t0l9bKyMhDi11bTXevCC4qu3kzLm2YqLpaXTB/Oftrwmjx78kMQIUFUVIIBJgCQxHP/5EtoNno9Bj63A9eR0GHR6+Pv7wrdRKK6nZIOIEODrA53BhIzsu7h9Jwc3UzMAADarHSoJKJzDx9sDgUG+SLuTDwBIS89FaO1ANG5QC5euJWPOCx9j1CM98M2a+Vj7+V6s/24/GGPIzStCUXEJdLIEwQXsDgVmo1l6fHR/+fDGJXzhk4MlqGzeyUtFVyP7T++BhAQVsbHy36UN0t+y0cbFCcTH86hxSz8oS8vddfPyDZ+urWsqB+NfYs89NUr29vIAEYcs6yBJEhgAyfnoRg3qwivAB1w2YMHKL0EM8DBJaNmiHq5fz0ZOXgFq1PBFUA1vvPP5LrTsPQsvrvwcAGCxOQDG4OvlAavVDrtdgcloBACkpOehTmgNGHQ6rPlyLzx8zFj61Aj07hKNgABPnDh7A4wxvPDmF+g2Yh5KyyyQZAlGgx6MMaicw8fHW17y9Hh2YMNC5YGoOj7XbpXsqtV58gfyt/EccXHCHc/8WwyIiVmqQ3w8Dx//WovIsUs35mUWTK/IKTS/NX8M/fDpUn1ko4aw2R2AAErLKnAj+RYkSYKA5kZyLlA3LBjtm9VHs/p+OHPpJrb9cAReHiY8ENEUVtWKs5eSERjgB8YY2rdsgn1fvYJlC6eCiFBRaYPOYIC3pxmqINhVgTohQQAIt7MLENGoFoTg2HvsCrp1jESAvw8qrTZsWTMXsyf1QW5+MeJ3n0J4s4bw9vZEbkERpj23Ckk30iBLElSuQlEURDRrqN/92WJ6fc4Qc4WdTTe2mbyx88gnWyA+nsc4ze4/zoCYmKW6hIQ4tfmjy9pI9soj6dcyxwSZJGXH5y/S048NY5obRzAZDZAkGd9t/wmdh76A7NxCAAAnAmlhAXp1bYHyCgseH9sPr37wPQpLy9CkcS3UrBmAk+eTITEGg1GH0EBfdI5ujkZ1w8AYQ6VdwGQyoVZoAAoKS2Avr0S7Fg1RZilHYXEZIhrXQV5hMTIy89C9UxSEADzMJvTo3A7RLSPx1Y7DKC+xYM7kQZAkCR9v/BEff/ADjpy+CsYYZBnQ6/XgnIMkmT03YxTtXPO00jDYf8ylaxVH2vWb1SYhIU7FX2CC9FeIHzX51ba8sODArSsp/r3a1FMObYzTd2obzhyKAsYYKixWbNlxAMXl5Rg7sh+MXl54cfkXkBgDEbl9+4E92+NufgnaRzZAo9rBOHQgETWD/NC6WX0cu3gdABBUwwtHT1/Dig+3YfzM5fhow1ZUWuyouFuCUU+tRM8JL6Fh0yAM6t0eiTfuQK2woUWT2riTUwiZMfTt1gqSJGHPvtO4eiMFimLDZ1sOoH27CHRu2xwZGdn4cPNh6GsFoXnzusjKzUevkc8jLeMOZEkGIwaHorKunVrqD33xgvJQhxb+l1KLDkT1ndwWCXHq/3Vzlv4vnk5CQpwaNWlxtLWgeP+ta5k1po7szuM/WqgPCvCHzWGHJv0M3/xwCKOmvomBjy1Ddk4hvnp3FtbHJ+DI6avQyzKICIIIdWqGoEXjhthz8DzeWDQB9ooKlFVY0bF1Y5w5cwVWWyXahNcGJzu2HzqFvMIS6M1mdGnfGHOe6I/QYD/MnvQw9n8eBx8vT5RZKhEW4oWQAB/4+niBKxwXk27j6o0U9J/yGvb+dA4nL1xB0sVbmDG2L3Q6HZat/Q6Vjkr4+3ighrc3Xn53C26mF8HLyxMcHEKoMOh1sNkdCAoO1G/98Bn+2KguNZJSrfvDe8yORkKC+nd7SL9t8wE0e/TVdk0enldkaDqWFq/aoBIRcZUT5+o9bmJeQQG1GzqP9OGTyDtiFH24aTeNm/MGtew/i+x2G6mck8OhkCCiNz/eRp7NRlCFtZKWf7iZDh2/SHfy8mjb7sNks9mprLyCbFYr/bdLCEFccMrLL6TyCgtxwem5ZZ+SX+RI8m7+CA2Y+gpxVaEBj79Gge0mU1l5OV25nkKmiFE0b/lHFNlrNn28eTd5NR1Ge46cISKizzbvoS5DZ1PGnWwiInIoCnEttlAXLP+MjI1GF7V44Ol21V3x++DiazeOenxxdJP+z5aYwkfTq2u+VomIHM5gymqtpK+/PUgfb9xF+YX5WkC0I4GCWo+lRxeuIlOjYdR60DwytxhNb3/8rdPvdxAR0cXrqdRt2NN081bar4la7e8qF6SqnBTOSeWcFFUlh6KQoqjEVcXJAHLHG5y0td26fYfOXEoiEpzOX7lG8OtBz77xKRERdRk+nwZOi6O9R85SSMfHKbzXdBo67RUiIrp8/Rb5txpFxvCRFNR+Au1NOEskBCmqSqrKiYjUF1Z+RcbGo0uiejwbfX+Y4HS3wie/2rbpkHlF+iYjKW71Ro34DoU451RWXkH9xi4hv4jRZGw6iprETKOziTeJiKjH2MU0Zu5bdCnpBrXqN5fQMJbC2j9KV6+lkRBEnHNyKHZSnRqkqCoJLrRoVVVJCEFCkPtDQpN0UZ1D1b4ghBZVu/5TqwVcRESZOXm0/N2vKCMnh77YvI8Q2o9uZ2XThu8OkNR4JPm3fZSuJKdRZaWV2g9+hpr2fIKuJN+mF99YT6ZGg+nM5WvO4E0lRRM+9bmVG0hqPLooquvMtvek3P867WNlACxy2ruNwkcuKmTNYmn2yx+qrujRbtckOH7XYULDYXQt5TZduZFOge0nUK12kyg9K49uZmSR1PAR2nfkPBERxa36irzCh9Fbazc6Ca6QIO42H/eI/H8zOdU+/+ninBPn3J2WcF0ff7WDXl/9JRERLVm1kRDSn5a+uYGIiGYtepfg05tmL/vM/f0jp69QcWl5lbnjwpVOUacv/ZCkJmMLHxg6r5Ezo/rXmRAdPU0PAC1GLoo3t5pCw598xSG4em8Ohwv66cQ5YvWH0rote4iI6OjZS2RsNJh6jF5IRERLV26gwFbjKTuvwGkS0shqszml2yXhf5zyQpBmilTNFP0JnpEQglRFvScVIYSgh8cvoZDoccS5Ql/E7yGEDaKHH32ZPCJG0hPPv0uVNqub7a51uxigaRl3DH1qBaFRbLxOlgAn7f56bmfM4tUBD86kNg/PcZQUl7ilqbCohM5cTCIiIpvNSg/EvkAe4bF0OekGERF9+PUPhIB+tGHLfnIoDorq/SSt+2obcS7uefE/df0OozjXmPhn78VV1Z0H2rr7MO3af5LOJaaQd+RIGvrEG8S5Qlu2H6RH5y6nSqvVyTiVBOfV3oO7TWVpaamj/eAFpA8ftZr9pdyRU31aTYzrUa/XjMqAVhOUC4nXBRGR1WYnLgQtWfEZoWY/2vJDAhERnb9yg3yaj6J2g5+mktISIiJ6cPRiemiUpgUFRcVUabc5JUf9TUIKoW2yrg//xXdcv2NXHPTtwVO0bMNOOpOU4s6m/vKenFe732+YoKotpOrni1Z+SggaSM+t/OxX3+NCkMKr1rXs3a9o8covNCHUzLG4eC1ZCWz/aGVI5MQe/20/kH8vnx8bH8/QZWIdpaj8ZEZytnnlC+PZwIc6M0VVYDQYwBhDk4a1cTk5HStWb0Wd2v7o37MTmjcMw9sfb0dicjYa1Q/Dhq0H0bBmEGIHdYXJbIJeZgAYGNM+VQUW0oIzSYIkMfeHMQYhBBgYiBGItHz+3Hc34rWNR3A6OR/fHDyN2kGeiGpYB0IQJEkL9H51P+czORcAg/v5rlVwIaAKQs8H2qBGDQ/ErfgG527cRrfoZjCbjWDOdepkGUKoWLDsE7zy3g84evE6WjWvjRZN68PuUFitkCDmbZb13x+6OLLTAwO+zNQXlyMpEUDcn7T7oxat8mz7OI2Y9rpCJMhqtxMR0ddb99KzL71PgnOqqLTS8CfjCCH96a2PtxIR0ff7jlCdzo+R3HAYdXrkWUq+nXGPR6MZfHLbUUWtssVZeQX0/dGf6ZNdR2nTgVOUlpvn3kRd3szpxBSqOeQFajbxdWo+ZRnVHLmUuj71JlmcewoXnLjznldT79CXPx6nT3cepn2nLlFuUXFVClrlbq+quiZwof3unsOnqXGnyZRw6oJTwrU6Rkl5GQ2e9iohsC+9uX47vb52E4V2GE138wpICC3VTkTK8JkrCPVHrWLA7+4Hut9NMzz62kMl6fnTfSXBly+aIBMBelmG1WbDktXf4aGOzcEkCQYdw8bVCzHL90M8u3AtKhw2LJkxBt3aRyE1MwctIxpDL+udkiPdU4QjZ91PJ0u4nXUX729NwL5z13G3xAaCBAJHqLcRa+fGolvbFnAoKmRJQkZuPhyCwIhDcQBGWYfSCivKKirhEWAE59qz3t+6Hys2HYVN4RDg0EkMYQGeGNghElMHP4i6IcEQQstJSUzL0oIBIE1L+sV0QNLR1tDpDBCCw2gwIj3rLoZOfwOXL6Tj03dm49Fx/ZF4MxUvLNuIhDOJiO3fFUIIALK8cv4YfuzCrek2/0m7Ss+tO4SYpbrq7Te/mYoIDk4iEEEpKVlWkFVkmjdjIBrWrc0cigJZlrHmy71IScrBpVt3cOzcVej1Ruj1Ony4bDoWPDsCSxdvwOyX1sDfzwfRUc2hk2QIwcFYlbITEVTO3ebhkx2HMfD5j/HlgcuwOCQE+Hgj0McTIX6+KLRyLPniR9jsDuhkCURAeN0whPibYVcFJEmCzaEisnEYAvx8tNKjLOFSajqWbTwC2WBAgK8ZNXx84ePli5IKYO0PZ/HwgjX46scjTvMkQeEcrnq8loiTwDmHXmcACa395ejpi+g5bjGKC0qxf8tLeHRcf6SkZWHygvfg4eWB5k3qgDEGo0EPReWsQb3aeG5af1NpafkyIgKCk+g/7gExMTG63bt38zZ3dP1y04sWhNcJUN+Pm6pjAGRJQlZOHqbMeQtTpvTDzbQcLH9vMxSrDZ1aN4PBaELvLtFQZAVWixV9u7UDJwJjcNYAWJWtF5rUp2ffxay3NmPt7jNgegO8PExgpOVIiQAhBAx6PSosDgzq1FwjsOAIDfDHxduZuHo7Hx5GI2w2BU8NfQCtG9eFonLoZAkHz1zFnrO34G02QlU1AoIASRLw8jDCpkjYcSIJKenpaBdeD75enuBcq7279wZJ0rSUMQjOMeGZt5GcUYSru99EVHgj7Dl4EoNmvInkmzl4N24yBvToiOTUTIAInh4eEIJL7SMbqQdOXKnz+IJ1p9iJ+GTExOiQni5+iwEsffJk4EgC+dRq91VedkGtd18cixbhDSWVC+h1Ovj6eKFn5wg8FvsQxg2JgUPhWLF2FzbvOom6tf3RrEEt9HqwLQY81AlMlrWNVtJIT6RtcrJT6rf8dAZPvL0RVzPLEOjlBQatv4f9ovsBBJAQGN6jNUL8fUBgUBQFn247iPxyDr1Ohl21o0mIB7q1iQAXWsH9ckom9p29CaPR6GxjYW7rJ0h7cU+TGZdu52PXyUTUDvJCM2eaW+UCzLVJOzO3OlmHTq2b4NtdP+HqrXzsP34Bzy7+DKEhfti6bh5i+8dg6+7DGDxtBVKysvBIn84QnKA36CnAz5Nt3XOyCZVe+4TSJgFI+LUGxMZukZM+eEq0nhL3cF5G6YJ24cE8bv54HXFAr9fhzIVErF63E8E1A9GgTijMJiP6dmuH7g80x4mfE7Hq7W8QFOCD9m3DoXIFEhjISUwuBCTGIEsS7uQV4vk13+Kt+BNgkhEGnQxiBBADg7Php1rTBmMMDkXBI92iUDPQD0SaMDStG4Ldp66j2GJFx2bBWPZkLAw6vVuCz95Ix/5zt+BpNmrSX72lhQuYzXoQCYDpYFE4th29hNz8QrRuUhPeHh7g0DRQcgqREAIhQTXQsXUTfLxxL26m52DquN6If38+6oYF48kF7+P51z5D7Xp1cezsdTSqUwNtIptAUbgU2bQ2P3wuqU7qnVpnpMr3kyl2i4ykeLpnD4iPH0kAYC2qWGwpL2FPTxrA9JIesiThxq0MDHxiGd5avwPrv/kRsiRrrhyA7p1a4fjWN7DypUlo27qxZnKggwDAuWuTlWFXVazfmYAB89fg+5PJ8Pb2gsPhQGiAHn7eOnAhnNJP9xBMs/EKUjOzITEGRVVBAIIC/KCTBAQInkYj/Ly8oAoBAiAxhks3MiBJsqZ6bu+aAGg2325X0CDUB6FBDKrNBh9PT3x96DIGPrcO3xw6CQmaJhG0lhZJksCFwIPtW+LK3tVI2vsuVix8DFeSUxHVfy4++f4oFs2diIs7l6NPl1Z497P9zr2PAZDYnIkPM70fXwzGACet3QyIjd0iA6A2jy0bVFxS0SmqabDap0c7WVEFmMTwxbYDqFszFGU3vsFHy2aCCwEiYOEbH+PI6UvQ6QyYN2sCHmjfEkJwgBFkSYJBJ0FVHdiecA7DFq7FC+sPoEKVIOl0kOBAz3b14W32QEGJA3qdBIcqIOheM0QkYDaZsXrbKaTl5MFsNGraBAEmERgY9HqtDmzQyTDoZOw/eRk//pwMH08TuBBu4ksSgxAcQmiMSE4vQLOwIPTr0Ag2qwKdwYCCCo65a3Zj+KIPsefMJcDJCMYYQARFVaE36AEm4aW31qPD0MVQGYPZ24CoyDooK69AakYBVK5UPZNI7t+9ndqhTYNOLGzwIALIFZzpACAe8QBA1tKy2aWFFWz85L7MaDDCZleg12mF6szMfKSk3kFU88YAgPKKMiScuY7Pd57Aua0rERzoB1mSIUmaZ5udX4A9p64i/vAlXErLg17WQ9ZJsNgc6BIeivDGQTh5ORvXsorhbTSitMKKBjW9IemA7DwbdJKkdb9JDCaDjDsFFRixdB2mD+mKHm2aa+2IOgmCCEajAZU2G5LSs7Dj6GV8vf8ChM4IHQgEBhJaF51KHI1r+SCv0Ibc0kr4eJpx8NwddIwIxrTBrXHm2h2cvp4DvcGAc6lFmLbiW0Q3DkFsz2j06xSBAB9fyE5HgnOBQyeuYOzgB/HBy9Pw8nubMPqplfA0eYDpDfhq1SwAElSuaYFep2PjB3dlx88lzpaBnRrJAYalSyXExVGbGSvrFiRnnkW5LeDk1ldZzdBAxoWmell389Fn/Eu4npKFuVMHYvbkh1G/Vm2kZGShWc+nceDLF9G9cyvkF5XgSuod7Dl9FfvO30RWvhWQdZAZg1kvo214GLq3qo+cu6X4/mQiKhWAGIPdpqJPu0Yw6DkSLqVBwAAGAW9PE8orHJAkCQRAUQXsdjt0MmHe2G744XgyzlzPxozBHcBVGz7bexF6gxkeRj1kqAAkEBg8PQwoKa+ELMkwG4E+7esjPacCRy9nwsfTDBtXEeptxshuUTB56rHv7C1cTb0LGycITmAQaBjmi4EdI9CvYzNENqoLs8GIcosFXp4eYGDgQsFPx6+iwmZF985R8PPyRvWOP50sU1ZePnUZsbTwbqa9vS3tswwsXcpkBM+UkBQvwlp0HXQ3s2B8/y7hYsLwXhIXAjLT3DBfXy8M69cRhcUl+PCrvfjg68PIuJONDVsPw+qwY9HMkfD0MOHw+UTM/3A7Ei6nwe5gCPTzRETdQPRq3RAjukcizM8LP5y4hv0X00BMj3KrHQ2DvTF9UAeUWCqw92waOOkBIrRvFojCUhsUVXsBo0EGA4OnhwkVNhXtmtTEnbwSZOaX4cHI2rhTUIrUvEr4exkhO1MOikpgEuDtIaNJTS9k5VVCFcCtO4XoGlUX3VvVR3JmEYoqbVA4w4mkTFhtFejbMRx92jdBgKcREghWRUFuqYJjl28hNSsLAzq0gNlkgtFgAKCZNVmS0bBeGGoG+2H73tN459Pt2LTjGHw89WjasA5UVWV+3t7ianKG19mT589J1uTLFBws6ZCXyACwyrKKMarNTkP6PkDuDmRZ8/8BoGZIID5/61ksmhGLL+ITsOfoaZh9PLDpvXkIDfIHFxwDurRD17aRSL9bgIpKG3KLCpGZW4LbeRa8v/0UUrIKodPrIIMQ4u2Jxx5uhWZ1gvD1j+dx8nY2dKRDgJcOvVrXxambuSixqLA5HIhuWgsVlRak3a3QAicwWKwKdDoDQBySzCCY0FrVuQqFE1o29kd2djmySi3ILVJQ09cLj8Q0wY4Tt2C1M3y5PxHdIuvguYldkZh8F98fS0SRnePUtTycupaLFrWC0bZ5EGK7R6BN0/pQCAjy8UT9sGDNc3MGK0QEWZKRm1uA+Su+wDc7z8BRaUHDZrXh4+mJQdNWYN+XLyKmQysAoMEPtacvNu8boxTS1yyvO2MA2APz3wtLv5B8zeRQvE9ufR0BNXyZxBh27D+KD9bvQt36dVE7rAYim9RB80a10axBGGSdzu1EEQkwJmnDEtU20Du5uXh9wx4cvpIJDoKXhwE1/bzQrXVDtGhQE6eu3sZX+y+jtFKFh0lCx8ia6NSsLnYcv4ab2UUgIsT2jICicPx4MgVmkxGSJKG4vBKP92+Hqxn52H/2OuaPehDXM4tx5HIavD2McHCCWRYY3K0pLtzIx7mbudAZZLRrFIBuUfVw6EIaLqcVwaoIBHkZMLFXWzSvH4zrGQU4eSMN+bklKHHY4Wk04IkBHTB1yEP3xCXC2dHhaqspK69AnwmLceZSOiaMiMG02B6IbtkYZrMnOgx9Dh2iGuD9V54EICi3oAQPjnyxPOVWVnPK3JGjA0DWopK+lvIKny7tm4ugAD9JUVQwmWH1F/tw8EgK2ts5jp9Pwu3bOdCZPGHUy/A26zBrQi/MeTwWRAKyrKm9loXUmFI7JAQfzJ8Mq82OkgqLtllWWPDWV3vxzpbDyC1VEOzviVb1fdG9dROUWK14L/40Cq1W1AoyY0qfDkjPLcTmgxfhafaGtcIKEKHcYoPNZoNe1p4lyXpYLRYUV1jh4IBOAiwc2LjvBqb2b4X6gb7Yceo6Dl/IQUpWOYZ1DUdE/SAcv5yB23llWPrlAQT7mdEzqh5em9gHtUMCoUIg0NcHDBI4CW0YAVVZVTAtnpBlGQknL+Pi9Qxc3fsWIps1dPPq7MVruHzhJgb1aAUAsDs4CwmsIdq3bOqTkpTSVwbW6wDAUWHrwm1E3Ts0FwAkOLk7qHtLXLqWAZvVhndemICIpvUxYPLLaNiwDkqLS1EzNFDzj3mVr62lmQGCDCEEOAFmkxFmk+YqehkNGDvgQbRv1QQCHHUCA1AnyBNvbzuI01dzEV4vEO1a1MKY7q0Rf+gCTly5g3bNGsLDKCHAz4jGtUPRrHYYWjUOw7w1W8GYBJPRgJcfH4z+19OReicXGbklKC63osLGsetUEuaN6I5xfdrj28PncfFWNnaeTEL/jo2wafEE3MwswO28AiicoXntADSoEwQvs5crKweVO4c/5F938ru03dfPG4AOGXfLYKlMQrPG9eDj7QlZljBtfAxmThlUvQ9KdOsYyTZvPdwFwHo0nfZmYJNBC64Etp5MP1+5xV0t465qT9LNNOo7YQnpGgyjMc+sooh+06m4tNRdCRKCk/gPBUFX9plz8aviSvV6rd2hOMtdvFoHBP+PBa0BC94jz/7z6e2tB36vEvyr+yiqg2x2K1mdtezf/C1nm7z4r4VO4WwoUGj8nOWE0EFkaDyUzlxK/N1CExHxs5dTyCtqwpWwmGmBurCwAF1ySnpkUIAX6tcO0nKWEgOD1qDavEk9/LghDl9s3Y/5r3+BkkoFH36zD0/E9oG3jyckJv3H7i5ncOvMqxBABOHM+7j+XWISDHrJZWIhOEGWgYSL1/Dj6STklpZDZjrUD/XH6JhoNK1fE0II6PUSIARkMG1TZBxHzyZj26kLKCy3QJZlNAwNxqierdG0Ti04uKrFI7LeuRRyBmrOPCiTtMQhY394ckXz8WWsXzkHk4f3hF5vQHij+s4pH3IHY4wxOP0Z1qhuEOqE+EVeO3FXp7MVFIRbKiqVNi3q6QP8fJzhswTGtBQC5xxgDJOG9Ub/7u2w8LWvsHDpp+jeNhydolto/y7Lf3AOR7OdEhgk+bcmubQFq6qCeau/wZeHEyHrTNBLsvPn17Fx389YMX0oBndpA50sQyUGs6wDEcer63dizfZTINmgVd4Yg0NNxed7TuO1R/thdJ8HtDS4a7SJATpJAtj/dVjIaW6JIOuNeKhru3vbDiV2z3216h7g7+tN9esEK9f0SeGStbRyrOAwNGkQygEw8YuJWVnW5rM45wiq4Y9P3pqFszvfQMuIhs5/Z24J+suTTc5s6apv9uKLA1cQ6BcIg04CFwoMOsDX2xO5NhWzV21GXmEhzEYjVO6Av48HrqWk4eUNByEZzPA0GyDJElSVw8NoBJMNmL32exy+ckMrJxJBMBdx2F+e1HKlKTgX4FyA/gM5BHEGgDdtVMcAT9+xOuJ2m8oFmtWv7eQp4ZcZYa1AITsrPUC76Fbu/MrvTyb+2bEyzaMoKC3BN4cT4e/vB7ujEj1b10NogDcu37qL4opyNK5VBxN7t0INX18wiUGWGVROaNqgHlbPHYatCRdQqXCE1fBH96h6OHL5Nn6+dRdMMuHrPWfQPaopRPVS4N80JafR6I/cTONO0wYhAIRNp9hUmwxCg3pB1Yz273TySpLbbkq/KKr/ZQY4aXG3uByVNgcUzlAnyAPrF06ABBmKwwG7qsDDaIQka+QzSjowoQWMep0OM4b0wNQBXeBQOIw6GTq9Hg9FZ6DP/I+g1xmRV2KBIOEMLp1PpH96Wlp7WK3gAEBwm6QIMUAmQqCPj1TdtfqPnHZuVPfjquFlhk6WoNfJyC2y4MdTl7WUtsEAD5MHODHYHA4t+2mQIEs66GQ9hBCw2GwAk+FpNEGn14OEwMc/HANkGYKrqOFt1jRWVKP6P4wV4HRFJT8fD3j4ew+QCFKEp5HBx9ssVVeRf3xknzEIoSIsoAYGdWqGkooKMJ0Rs9/dive/24+SsjJIkuZxmAwGcCFgs1eisrwCHs4I2dNkgl6WAEngUvJtPLZ8Pb45kghPgxlccWBsr7Zwln3+JYwG94MlP28TvLxNETrFZhdms17y9jQ7v/AvMQAMxLTs5eJHByIjrwj7L6ajhq83XvvyJ2w5dBHREfXQpGYgurVsgBaNGmB4TGu0qF8TNf3MuJqSjtScIiSmZuHCrUycv5kLq2CQdUaUlJfjjan90Lt9FFwZXvybTADg7eUBo0ESOs65ZDAYYTKZnIv690ZhJSZBCIKn2QOfPD8RL328Axt+Og+DyQtXMspwI/c8hndujpo+ehy5mILLt/OQW2rB1wfPo7jcDptDG32CLEOSZNgVB8KDPbF44iPo2yFKa/By+vjsX1YBg1EPo0En6VTOwWR9tR38X1VQVwUJnmYPrJw9Gn06RuLt7w4jJMAHwx5sjnPXc/Dy5uPILqjQJJlpc1yAEQrZAEEwe0hoVMOMR2IexKSHO8LbwxMq5/d17/qzl16WoJMkzRtj/2Pz35KzHZFA6N0xCr07RmH7sXN48ePdyCquhJ+PN4xmI+x2Gzz1ehhkwN9bj/aRTdGkpj98PfQY3DUavp5eAARUrkInyf+uzfkNRWCQoJOY5Nx36W+d3f7rmqAVwbnguJaegznvboOQDAj080FZhQXRzYLRt0MHeJk8EVm3Jrw9ZHy9/2f8nJyNs4m3cPNOEV56dDCIGGQ38f93OMCF0MBIZJ1OKA4Bu92hdSTgfwiPwlns2HbsAsoVDi+TERabFQvHdMWO12fC38MHiz/bDYULNKwdhqz8EnybkASb8MBnu87g/LVUbQJe/O9hbKgKh6KqQtIZTVKl3YaKSntVYPI/o6aaxKZn5cOkN6O8woIhDzTDrNi+YExGSk4BCkoqQSDodQa8MXMEGoV6QccIKgFHrqY4d7X/pZfS1lJeboHdziVJIiXJZldRXl4p/s044LdzQ9qfvt6eIMGhgCO4hq9bhUMCfKGXZWcXG5CcnoVKG4EkCYIYTEYD/ufeSVuKKCmvRFmFJUmSGXY5FIbyCquoal76bzehP/S9v64AGubP4C6tIBGHh4cZ8YfO42JyKmRJQqnFAk8DoW6wP45cTMKMt7+FXUhQhYCPl4zebcPdaeZ/SrqFEP/Z5Gl0E8UVKizFZbsko4eHSUAg427R78qKq1mWcw5V5e7hivur2uTciFXEtGqGUQ9FoaSsElYyYfALn2DnkZ8xoEM4VswYgjXfH8HYl79GkU3A00NGUVExpvXvjKZ1a4K708/svq6VSNwzECIEOQGo6B6qugQ3924hQLJJx3SyifQSbt2+84v0oKu2q02zy7IM2Zn3Lysvg8lkhF5vcLY+3Y+X02oHjGQIAcQ9OhhZeaXYcTYZwztFoNxmx7c/XcR3x28gv6wSvt7esDscyMktxPiukZgb27sq6mX3N7ZxEZkxhgtJyfDz8kKDumGQnK23RFUZZlccciM9G5DJpPP089rIICZdT83RAyAGYi5N0WyrVvEiwZFw5go27TiK+O8TsHrZkxg3pNcv4b/+9piRSZoX42U2Y82zo9Hv8M9gMsN7W08hJacURpMMncRQXlGOuqGBmDu8E6YP7Q6dTgcS9A8EXqR1WzMZc15ah9Wf/wA/Hw9ENa2LMY/EYOIjPZyt6sJZoJEJgHz9dqYDlUUbdQH1Aq97XDbrk9NymM1uI5PR4C4oKKqK5LQsbNt7At/9cBIZOaVoWC8ITz0+BN3at9QKMq6a432UMBe0TYCPDwRjeO7DvTCaTdDrCbUDvdCsjh+iGtWGr0mPCX06Qy/rwQW5e5rutz8vSzLOXb6J7/Ycxakdy1FaasG6jbvwzKtf4LMte7D94yUICwrS1iQzVFgqWXp6nh5W3+u63FuFqoeXKfHO3fIWWXcLqVG9WkxVOfR6GfsSzmLIlOVo3KAW6jYMQpmdcGrbCkiSjLt5BaisrISHh+m+Jy80Eyjh5JVkLFz3Izy9fRDgKWFC77ao6e+LqEbBeObdHTh5KwvX0nPx1lOjwQT9I2kV1yDJR1/vAjEdJCGhT9d26NO1HUpLK9Bq4LP4fMtBvPDUGKiKCtkg0e07eezO3aJEr+bhqnRu3bwCD0/zmTKHSpeTbovqqhUd1Qw7PlmI6wkfYN/6OMiSwNTnP8DwJ19DwwcfxcFjP0MI5sTuvO+uG3afugKS9RDcgdVzRiE2pg1eWr8TIQHBaNm4Jox6I3acScbNzLuQnGgs99MFJVRNAHVu3wK1QvzQZcRzaPjgE3j21Y9xJ68QdUN93Sba5YJevplNRYXWM5XnVhVIAGD09jgGxtjhM9cll8qTAEKDA9CvT3vsO/ozpix4C0WFFuz76SI8PczYsX4pBvXp4q74/xPBi0PlzmQd4OdtgIMz2AShhq8XatUKgJAIDgdHRna+U3PuZ/qBIIQWqW/6/gDqhPjhzPZVOL7tTYwf0RWHTl1Fx8HzcfVmFh7p/4BmrmUJAKSfzlxksJcdY9AmZFiL3sNyC/MKppaWlBsnPdINer2ecedwwbY9RzFy6uvw8vXBvCeG4sM3nsDIAd1Qv3YQPvxyF8otNjSsG+YcYmD3jfwSY+DEsfXoZehNely6dhsdmtSBycxQabVhxaYEMKaHUcfw9Ige8PP21NphwO4LD1ztiRWWSjw8YRlqhvkjpmNLhAb5oOcDrfHk2IcxsGcbDOkTjbYtmkEIAZ0sU0W5hcWtji/Pu5E3V6ipFRJilsoHVs7K8fI1Hbt1pwCJyZmcsapOgb7do3Hl4Br8tPF1TBnRCxaLA6++txlNYp7AjEUfYdkH25wu2P2LOF3Z0T7tojCyWwTyCopQZuVwkIogPz/MWr0DlXZCQUkpxveMQr2wIE0gGLtPCkDuBoV3Pv0eFpsNT0wcgMzsu3hgyFO4k3MX5RUWhIb6I6ZTWwguIDT7w3++no4bqdnHqHJ/DotZKuuco5PkV8Nv093M8v4/HDjNoqOauB/l5eGFxg29cDs9B6vX/4CvdxxBfk4Rnnt2FEY+3Bk9Yhdj+96TGNL3AXDO3bHC3+sFaY1XkgS8/uQwhNcMRfOGwVi15TASrmTCYDDBqLdh9vBOeH78wGrjTvfPIDLn/Jqn2QSTQaDbiEUICPBGWM0GqB0Wipff+gpnzyVh+1evOgNWzR7uPnSeKbklm3SMEWJjSUJEBAFgJi+vo15exvzdP11iNruVZFlypxxy8vLQc9wSbD90Dm8vnoi+vaORm5OPtpFNMHlUd1xIuuXsAru/hRrOBXzMnnioUzPMXP0dDlxIg5dJQq/o+nhzan8snTwIOp2swWKy+2f+XV3g6ZlZeGbacNw48hEGdGuNK9cykHjjBtZ88T027jmFEUN7aiiR2pQllVVY2I9HLuUDQUdVgDlpDwDavFLTQc/s92w1gQ4c/Vkl4QIk0gAuxs5aTkOfeFVDsj17kVZ/Fq/1c/6if1PQn4Us+ePQJlwIsisOGvrcGvIf+CLFLv6Avj10gr45dIqajomjtzdrUDkOVb1vq3D1mWbn5VHN9qOo/+QldC0lg4iIikrL6NV3v6C6HaZQVN9ZVGGxEK+CLlDjfzxNUsPh+52DeXJV9SU2FgCYT3CN1dAx+nJrArkaxpgzxF46dwz2HTqDw8fP48F2rTBryggY9DooqopNOw9j+NQ43EzNBANz28e/W+okxlBSXo60u8VoVLMGhsa0wp6TSSivtCOtoAK7z9yA1WHXCjD3QR2JNLJYLFaUlpTikzfnI6+4ApG9Z2HsnDdRVFSKRbMn4mbCWnz3/lwtAiaCrDkn9OXWwyRK7av57+imxBhQu9f0EwEdp1Dy7UzVBYqkQblwSjhxiQqLtc7ovLwCWv7+N9Sw2zQK6TCREDqIJs9dqeFBO5Q/jwP0hzSAk0NxUL9571HwI8/Ta+u307IvdtLzazeR54AFNOiF98mhKG64s79d+p0gVQteX0sNHpxAQtE6rLf9eJyi+s4mQ+PBNG7OCsrIvOvURO5G0zp3NZl8okafYAz3gIBXxeqxWxgREFjT/xWbldHHG/eTq/GUARAC6Na5JYrLyjH3lXVo1mcO3t98EHMn9UfHVo0QVjsAE0b0hCQxGPS6+5KH16Dt9XhySCcYZTtaN6qFWiG+WL/3MowAnnj4Qeh1OqjE//auB9e047e7E/DOhgP4cPlcMJ0e+w6fwcBe7XFxzyqsWz4LFy4mIzUtx0k3dyROa7/aT2Uppa8wApAUyX4n97VUkhhDnZjpp+o88ITIyMhWuRBudELOOT378gdUs8M46j52MY2Y9Qa9/N4G8gofS8d/vkpERPuPnqGEUxeIO3/n79wTBAltHoGrlJlzlxZ8sJkMveZSg5FxtGH3USISpHCFOHGiv1EDqmvT6o++Ia8mw2jJO1/Shxt3Ut12Eyk1PcuNeSO4QpxU5zyAJv1Xb6aLgFbjTlWT/t8WjxgnvFb78Yv6GVpOotlL1iouFEPuBNYpKS0li6WMbHYLBXWYTGgwlPYfPeuGk0etgfTs0vfcBPtvQxZ/3gxo91vz3X5C9xk0fOmn9MG3P9L5azdJFRqUpOB/P/FTM+7QzgPHiYjowNGfKbTTFIJfP1rz9W7nuhykqooLV4sECReiojJpwbsEn5h+kkbk/wxhFhsbKxMRq9tjxpmQto/RxaQbquvFRbWpkUXLPyWp/iO0eddRIiJa9/UOQlh/emz+u2Sz2+j6zdt0926uG4by75JIF9Bez7mraPyrn9Hhc5fppU920JTXP6uCvHQCQv114rsmd4g2fbuPENKXVqyLdwJLFdLoJ1+jwJZjaf13+53wnQoJrhHfhSl69OdE8moSe4aIfhNF8Vf52ry8CMYYQ0jdgIU2ErbFb8ZDCEEuey64FhswScJrz43BqP5dsGTl55j29FrMnTEUn6x4CkaDEV99dxD9JschO7dQG/T4W7ySqlJo20ahiG4Sgh9OJKK0shy924dXlZPY3+XrS05PT8GoYb3w8apZWBD3KWa+8C5qBtXAprUv4Lknh2Dq/HewP+E0JEmngZI70RG4yhH31iZbRZF1oYYREfHHVuaCLGv28KxVns0n0YYtuxQXUKm4BxhPoZmLPiB9w+G0bI0mGQ67JqHpmdlkbj6K6nWZSqcvJVXNSP1FyXTNmeXkF9GOhDP0zHsb6XpqGlkUO6kuCMy/uM8oTu8lJf0OHUw47YQr1jygnfuPk9x4MA2ZspQsFg0/NPF6CpWUlmrP5trRKESkvPf5DkJI31US8CchLJ3qEj3tjbo1u8+qrNXpMbqVniVcJsBFTIvFQn3HLaRanaeR1WHTEAVVlVTVQTGx86jNgHk0fPprtHDFx/cEMqobI078nwMyIqKCslJauGbzPYN1f8XUVcelIyJ6/7NvCcF96cfDPxMRUaVVw8w7feEahbUdS217z6BryRn3wCo6300k3UqjoPaTKsMiptXVwG/pT+ql015Fj5zfw6PVmMqBk5YoqqoI14bMnWCpVpuVHnxkLvWf8Lz75cc/+xYZw0fT5esanGR2bgF1GzqbEo6fv8e+/l99dZcW5heV0JJ1m0lx2IkL7vb/xZ8mvLgHxPXo6Uu0ff8xcigOmjj/bZLqDaFT5646z5fRwFuzCwpoxJQ4On81WaOH6hZMwbmi9JqwuBK+g3tIDH8BxtgJ3Np04OzVhogJ9PrqLx0uvGghqjyc3Lx82u30EBauXE+s9mA6dOyCWyzGPL2CgtqMozvZeXQzJYN2HzxGnKtu7GXt5cWfMhPkZP7ZxGukONHMufiT4K2C7iH81espNGnucop6aDr5NhtB4555i4iIRk5/hbyaxdLFq8laIPbyWrqQeP1egSAih0OD0160/CtC8MDV8h/xev7QfsAY6vWYHu/Rcgr9cOCkxgTF4Z6Tdb30hk27CH496Itt+9yL+27nEUJYXzp48hwREUUPmEV9Jjz/G7aduzz9P8QKUQ1v0mX7+X+UfnEv5LFSBRybnnmHyssr6OV3vyDU6U05BQV0PTWdWIPB9NPJS0TEqd+4F6hB16k0Zs5Kqt1pAl29nkKqysmhKkRCkEND33V8vfMI6eqNjJfA/gboYlSBdz8wbUWjsK7TC0M6TnK7ppqfW4WdfOXaLVqzfrv7RXPy8qhel8cpoPU4GjQljubEfUg+4bF0O+MuZebk0pPPv0vjn15BV26k32OD3a7kfw/LnKawCjX9P8UP/BcxCRdCg6wPH0rLP/qGOAlq+tAMmrlkLW3bd4J8W46iC0nJRILIYrFQzKgF1LrPTLqbV1iVmhDuTVc9ei6JfKMnFwY1ntaI/i7w7ur7Qadx89vW6PBoUWT32ZSWnl3FBHHvhupQVHI4HDRq5utU+4EpdCstk6YufJ/g/RB9/NUuUoVCzWKepM7Dnqdxz7xNzXo8QQVFxb8ikGuzV5wMdhG4CvDbpS/34qe7QGKrzFvVZbFYaOe+U7TOGUB9tfUAod4wajtoLtnsDjp25gpJDYdRvY6TaddPp93o7kREJSWlVFFRcU9eyEX8pOQ0qt/t8SLUHdhWy73F/r2FEdfpGR2Hzo72aTWlpPXAZ+hOTo5adQiaJo3OBVF65h2qEz2G4n/U9oahT75GrR+eRURE81/7iHzDY8lms1HizVuEkN50wWlfn31lLc179UMqcULE/1Jif21kuPMj3Kjmv95kVTp87Bzdzsyi7Oy7FNBmNKH+I/TjkXN0MyWDIvvMoOD24+nrHfuJiOiFlV9QSNvJVFxW5vx9Z5DlinCdDoiL+MnpmRTZd0YJPPpEa4HVfTpFw7Uptxg8s51nqylFbYcsoPTs7HuYUGWfOeXkFRCRoM827SYEPkw/X7pOeUXFZGo0lF55bxMREZ29cI1mLnybrHYH7U04Qz7hI8gncjRdvXGbLJVWevbltfTK6o10+ORFN4FLy8qovKLCefoGd3tUwukJVVRa6a1139IzS96jxOQ04lylpt0m0+ylH2pe2jOrKKTzFGr90Ew6/nMiDXo8jnqMXUy9xi4mlStkd9ipZd851HrgbCovr9BMo9COaHEBgDttvpqckUmt+84sAmLaSQz37wiTaqqgHWUydHq0b9Tjha16P03XUm6r1QO1Xyaw3vkonp584R0N0n7jLgrpOJEKi8vukVKbzUbt+s+gqc+/TRF95lBOfhGlZ2aTockw6jdxEbXs+QRNeuZN7WCFJWuoSffHqdPQZ2jMzJdJiHuSX/TY/NXUduAceuTxxdS63+OaZr3+GbXsP1dLGB4/T2EdJtKop16nvhNfpFFPLacVn35LAS3H0oXEZHfRaeKsZVRUXFJViHEyWtHSE2picga1eHh2IdAxWiP+fT7E55dM6DRwZtuAtlMK63SZRodOXHS4mMC5Zig4524gbFW1kxCCXvvwG2oU8xgpqkpvrdtMqz/doh3w8M4GGj59Oe3+6RyFtZ9EqqrQ0TNXyRw5Wsu57ztFqDeYrFYrDXxsGfWbtJQycvLo5IWr7kN1XPa+ZZ8ZNP5pjeHpd3JICEE79p8kj4hRlHoni0hwav3wbHpu5Qaaseh98mw8gg4cv0Rt+s2hsXOWkSByH6fyyz3HaXYcR89eoXpdpxdC77T5/9gxVgCQkKDGxCzVnfphzfkGkf69FIHi4TPf0X/y9S5Fp5NJkjSoX0mS3B0N2qMIjz7yEOqH1EB0jxn4YP1uNG1cF/n5RXhzzQ+w2Mrx5bd7ERToA1nW4VZaNhyKgrfXfYfla7/DAx3DYTAaUF5aAR8fb0iM0CqicbXGJ60uHffseHy76yjaDZqD5LQcMMbQoVVTGA06HD5xBcQkTB7VExu3JWDhjJEwm4BbaWl4/blx6Nu1JVyg9q7uZleVjxgjnU5WNmw9pB/yxJvF6Rl5vST1h/OiW4wOCQnqPz5s4NqYO49/tkWtbk9uNEROoCcWvEslZWXCdUKSK3Wh2WnuPHxBoWOnL1NWrnbSUv8JL9KQx+Lo622HqEnXadR/inaC0bOvfURNekyn7qNepMAOkyg7N59ICIoZtYgCoqdQkwcn0I59R91eiaiWLc3KzaXR018hhPWlDd9pm2uvCS/SqNkrteCxqJA8m4+gz+P305Wkm3Tu8vXqu/09Uu/MAwlrZSXNe209ocGwjZ7h41v8s2bnv7iojAGNek/7wNRsTGXbwc/QsVPnHVUgSarryIBfRb2lpaX01KJVdOO2FgsMnLyE+oxfrBFs/BJ6ctEaOnTmEgW1G0f5Tuz/5r1mUtx7G8lqs7nPoXF5YUREF67eoFVrvyEioscXvE9tHp5NREQrPvqWPCOGU0mZ5kruP3yaridXHZulKpwUhRMXdM+eQkSOE+cTqdvwFyoRMuQDSXI15P91V/Ovcy8+nmPpUomSklhK/LoZrQZPj0/NK/p+8Ix3fB4b0ZWenz5c1PDzl4UgJ8aapLUMkgAYg7ePN957dS4IgKpyDO4ZDZIZiARSUzPRuXVj+Ht6Iv92Lq4np+PB9r4oraiA4lBxJ6sAnp4mhAbXcM4yaEuy2h145uX1uJmaj9OXrqNHpxYAgAEx0fAx6GDQaS03vWI6aOVGoUKCBEmuwrp2IsTw0vJy6b3PftS/+cXustKMsqFy0faf+IhYGfERBMRx/E9dTnXsOn1RnXpdpq3UN41VW/R9mj7ful8lUrhTuzVItGpekhal3uvDK8JBZy9eo1spmXS3oIhin3iFzpxPpEp7JfUcsYBa9JxNTdtNoiXOw9ic1Sf3pn/45CWaNGcFvfvJ92Rz2Nzm755TmFxHW1UL3pxr4ESkxu85Su36P60ibOhK/3aL6vyhita/flWr+LceMrd/jXZTEvTNx1LvcXG05+BJXr2RSHEeJVU9dvpPh+240h4VFgsVl5ZQXkEBlZSVksLvZehvHw5E7nS521X+RfCoEZ7zA8cu0IBHXyap6bgE1BvTvwoG6H/9SPOqggJzFXUkCWj60BNDPCMnJ3hGjqNeE1+m+F1HVKu1UnVtBi73zkV4V7TLeZVmVLXH/PqAw99KwqlOwv4yr+SqU1fVuTWvs7LSom7ZfZz6P/YKGSLGJCB4+BBJdh5rEj1N/+fz+X98Cuj+btDx8VybpAEadJs5MKuwZD4RukU1rIUhfdvikb7teUTjhi6XmAHaMKC7/9LZ/l4FjEau/6vGmH6nDukqX7rOiWFgrhZxAiAAgSs3UuXv91/Etn1ncCEp+wgqbCulvO9+ADmhQqu9w/97DLiXEQIAyQxo0HfaoIJ829OW8sq2/n41/KIj66FHh2bo1SVKRDStI4wGs4sZ7vUJJ2S+ezKzOgfA8MsfMobqI0qu7lhRYbFI11MzpcMnk/DTyWs4dSmlpKio6Dwkj3ektE07nYRniI2V7ifh/1kG3MOILQJgxAB0m7S0fmpqYcf8gpKxgjt6e/qYzI3r10LLRrXQsWUjRIXXRe2wADU0uAbTyXpyzTP8geZlrn2PU2ZWgS4zpwAXrqXjXFI6LiSm4VbGHWtFmW0/7PJG36CI0xWX49KcbQf/GOH/HQb8InZwvagEoOuoOfXT8pXuRcW2B+2Wsk6yLDfRSbKhRmAAC/b3RmiID0JqeCOohhk1fH3g6WGCwaCHTmIaepaiwmqxo7i0AoWlVuQWlCEnvwTZOblUWmZzlFttyYKkU5JeOh4U6nc4/8hHaeQ2ZbEyYqvW809e/zJ8yFIJsUkMeRGs+vlaS7ds8Tq5+5J/SmZJI6uDDSvKz4HNbods9HhIJ+sjuGIXRLLEwMFIAIxAkAXJssRJTYJNOQghYPLyAXnotzYOqJ0yorOu+JW4uAp3p35MjA7BweT058W/RYH/D1yNUr7wwhdDAAAAAElFTkSuQmCC">
+      <div>
+        <h1>Action Medicine</h1>
+        <div class="sub">Front desk price lookup</div>
+      </div>
+      <div class="updated-chip" id="updatedChip" title="Date prices were last published">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="updatedText"></span>
+      </div>
+      <div class="gear-wrap">
+        <button class="gear-btn" id="gearBtn" aria-label="Settings" aria-expanded="false">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="dot"></span>
+        </button>
+        <div class="menu" id="gearMenu">
+          <button id="editToggle" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            <span id="editLabel">Edit prices</span>
+          </button>
+          <button id="publishBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><polyline points="12 17 12 11"/><polyline points="9 14 12 11 15 14"/></svg>
+            Publish to website
+            <span class="badge">unsaved</span>
+          </button>
+          <button id="reloadBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            Reload from website
+          </button>
+          <hr>
+          <button id="exportBtn" title="Download all prices as a CSV file">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button id="importBtn" title="Load prices from a CSV file">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import CSV
+          </button>
+          <input type="file" id="importFile" accept=".csv,text/csv" class="hidden">
+          <hr>
+          <button id="setupBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            Publishing setup
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="searchbar">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#13343b" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="search" placeholder="Search any service or price…" autocomplete="off">
+      <button id="clearSearch" aria-label="Clear search">×</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Home: category tiles -->
+  <section id="homeView">
+    <div class="notice hidden" id="noticeBox"></div>
+    <div class="tile-grid" id="tileGrid"></div>
+    <div class="addcat-form" id="addCatForm">
+      <input id="newCatName" placeholder="New category name (e.g. Aesthetics)">
+      <button class="btn btn-primary" id="addCatBtn">Add category</button>
+      <button class="btn btn-ghost" id="cancelCatBtn">Cancel</button>
+    </div>
+  </section>
+
+  <!-- Category detail -->
+  <section id="catView" class="hidden">
+    <div class="view-head">
+      <button class="back-btn" id="backBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        All categories
+      </button>
+      <div class="view-title" id="catTitle"></div>
+    </div>
+    <div id="catNote"></div>
+    <div class="item-list" id="catItems"></div>
+    <div class="add-row" id="addRow">
+      <input class="in-name" id="newName" placeholder="Service name">
+      <input class="in-price" id="newPrice" placeholder="Price">
+      <input class="in-note" id="newNote" placeholder="Note (optional)">
+      <button class="btn btn-primary" id="addBtn">Add</button>
+    </div>
+    <div class="danger-zone" id="dangerZone"></div>
+  </section>
+
+  <!-- All prices -->
+  <section id="allView" class="hidden">
+    <div class="view-head">
+      <button class="back-btn" id="backBtnAll">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        All categories
+      </button>
+      <div class="view-title" id="allTitle">Every price</div>
+    </div>
+    <div id="allItems"></div>
+  </section>
+
+  <!-- Search results -->
+  <section id="searchView" class="hidden">
+    <div class="view-head">
+      <div class="view-title" id="searchTitle"></div>
+    </div>
+    <div class="item-list" id="searchItems"></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+/* ================= Constants ================= */
+const STORAGE_KEY = "actionMedicinePrices_v6";
+const CFG_KEY = "actionMedicinePublish_v1";
+const CSV_PATH = "prices.csv";
+const SEED_DATE = "2026-06-10";
+const EDIT_PASSWORD = "action";   // shown on screen — only there to prevent accidental edits
+
+const PALETTE = ["#0e6e6e","#5b5bd6","#d97a26","#2563ae","#9a3d8e","#2e7d4f","#c2415f","#7a6a2f","#476b8c","#8c5a3c"];
+
+const ICONS = {
+  membership: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  procedure: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
+  vitamins: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="11" height="11" rx="5.5" transform="rotate(-45 8.5 15.5)"/><line x1="6" y1="13" x2="11" y2="18"/><circle cx="17" cy="7" r="4"/></svg>',
+  vaccine: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5l-1.5-1.5"/><path d="M21 7l-4-4"/><path d="M18 6L8.5 15.5a3 3 0 0 0 0 4 3 3 0 0 0 4 0L18 14V6z" transform="rotate(3 13 11)"/><path d="M6 18l-3 3"/><path d="M11 9l3 3"/></svg>',
+  lab: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18a2.4 2.4 0 0 0 2.1 3.6h10.4a2.4 2.4 0 0 0 2.1-3.6L14 9.3V3"/><line x1="7.5" y1="15" x2="16.5" y2="15"/></svg>',
+  immigration: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14.5 14.5 0 0 1 0 18 14.5 14.5 0 0 1 0-18"/></svg>',
+  weight: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12l3.5-4"/><path d="M3 16h18"/><path d="M5 20h14"/></svg>',
+  all: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
+  generic: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>'
+};
+
+const DEFAULT_CATS = [
+  {
+    id:"memberships", name:"Monthly Memberships", icon:"membership", color:"#0e6e6e",
+    note:"Discounts can combine with the family cap — when in doubt, confirm with the doctor.",
+    items:[
+      {n:"Children (newborn–18)", p:"$55 / mo", note:"Requires at least one parent membership"},
+      {n:"Adults 19–20", p:"$55 / mo"},
+      {n:"Adults 21–40", p:"$75 / mo"},
+      {n:"Adults 41–64", p:"$95 / mo"},
+      {n:"Adults 65+", p:"$115 / mo"},
+      {n:"Homebound individuals", p:"$160 / mo"},
+      {n:"Couples discount", p:"10% off"},
+      {n:"Veterans & First Responders", p:"10% off"},
+      {n:"Family max payment", p:"$265 / mo", note:"Total household cap regardless of family size"},
+      {n:"Annual payment in full", p:"Ask office", note:"Discount available — ask for details"},
+      {n:"Small business rates", p:"Ask office", note:"Contact us for employer pricing"}
+    ]
+  },
+  { id:"procedures", name:"Procedures", icon:"procedure", color:"#a16207", note:"", items:[] },
+  { id:"vitamins", name:"Vitamins & Shots", icon:"vitamins", color:"#d97a26", note:"", items:[] },
+  {
+    id:"vaccines", name:"Vaccines", icon:"vaccine", color:"#2563ae",
+    note:"Cash prices below. Most insurances are covered through VaxCare but require an eligibility check first.",
+    items:[
+      {n:"Influenza (flu)", p:"$60"},
+      {n:"Tdap", p:"$70"},
+      {n:"MMR", p:"$130"},
+      {n:"Varicella", p:"$240"},
+      {n:"Polio (IPV)", p:"$50"},
+      {n:"Hepatitis B", p:"$185"},
+      {n:"Hepatitis A (pediatric)", p:"$55"},
+      {n:"Hib (pediatric)", p:"$55"},
+      {n:"Pneumococcal 20", p:"$320"},
+      {n:"Meningococcal", p:"$155"}
+    ]
+  },
+  {
+    id:"labs", name:"Labs", icon:"lab", color:"#9a3d8e",
+    note:"Cash prices below. Lab work can be billed to insurance through Quest Diagnostics — results take about a week.",
+    items:[
+      {n:"Tuberculosis (TB)", p:"$80", note:"If positive, chest X-ray required — $50 cash at ConvenientMD"},
+      {n:"Syphilis", p:"$20", note:"If positive, FTA-ABS confirmation required — $10"},
+      {n:"Gonorrhea / Chlamydia", p:"$60"},
+      {n:"FTA-ABS (syphilis confirmation)", p:"$10"},
+      {n:"MMR titer", p:"$30"},
+      {n:"Varicella titer", p:"$20"},
+      {n:"Hepatitis B titer", p:"$20"},
+      {n:"Polio titer", p:"$115"}
+    ]
+  },
+  {
+    id:"immigration", name:"Immigration Visit Fees", icon:"immigration", color:"#2e7d4f",
+    note:"Dr. Tremblay is a USCIS-designated Civil Surgeon. Patients must register online before calling to schedule. Required labs: TB, syphilis, gonorrhea (see Labs for prices).",
+    items:[
+      {n:"I-693 physical exam & paperwork", p:"$450", note:"Charged at the first virtual consultation"},
+      {n:"Additional sealed I-693 copies", p:"$50 each"}
+    ]
+  },
+  { id:"weightloss", name:"Tirzepatide Weight Loss", icon:"weight", color:"#c2415f", note:"", items:[] }
+];
+
+/* ================= State & storage ================= */
+let store = load();              // {updated:"YYYY-MM-DD", dirty:false, cats:[...]}
+let data = store.cats;
+let currentCat = null;
+let editingIndex = -1;
+let pendingFlash = null;
+
+function freshDefaults(){
+  return { updated: SEED_DATE, dirty:false, cats: JSON.parse(JSON.stringify(DEFAULT_CATS)) };
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.cats)) return parsed;
+    }
+  }catch(e){ /* localStorage unavailable — fall back to defaults */ }
+  return freshDefaults();
+}
+function save(markDirty){
+  if(markDirty !== false){
+    store.dirty = true;
+    store.updated = new Date().toISOString().slice(0,10);
+  }
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }catch(e){}
+  renderUpdated();
+}
+
+/* ================= Elements & helpers ================= */
+const $ = id => document.getElementById(id);
+const homeView=$("homeView"), catView=$("catView"), allView=$("allView"), searchView=$("searchView");
+const tileGrid=$("tileGrid"), catItems=$("catItems"), searchItems=$("searchItems"), allItems=$("allItems");
+const searchInput=$("search"), clearBtn=$("clearSearch"), noticeBox=$("noticeBox");
+
+function esc(s){ return String(s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function show(view){
+  [homeView,catView,allView,searchView].forEach(v=>v.classList.add("hidden"));
+  view.classList.remove("hidden");
+}
+function catColor(cat){ return cat.color || "#0e6e6e"; }
+function slugIn(name, list){
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || "category";
+  let id = base, k = 2;
+  while(list.some(c=>c.id===id)){ id = base + "-" + k++; }
+  return id;
+}
+function notice(html){
+  noticeBox.classList.remove("hidden");
+  noticeBox.innerHTML = html;
+}
+function hideNotice(){ noticeBox.classList.add("hidden"); noticeBox.innerHTML=""; }
+
+/* ================= Last updated chip ================= */
+function renderUpdated(){
+  document.body.classList.toggle("dirty", !!store.dirty);
+  if(store.dirty){
+    $("updatedText").textContent = "Unpublished edits — not live yet";
+    return;
+  }
+  let label = store.updated;
+  try{
+    label = new Date(store.updated + "T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+  }catch(e){}
+  $("updatedText").textContent = "Prices updated " + label;
+}
+
+/* ================= CSV helpers ================= */
+function csvField(v){
+  v = String(v==null?"":v);
+  return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function buildCSV(){
+  let rows = [["Category","Service","Price","Note"]];
+  data.forEach(cat=>{
+    if(cat.items.length===0) rows.push([cat.name,"","",""]);   // keep empty categories
+    cat.items.forEach(it=>rows.push([cat.name,it.n,it.p,it.note||""]));
+  });
+  return rows.map(r=>r.map(csvField).join(",")).join("\r\n");
+}
+function parseCSV(text){
+  const rows = []; let row = [], field = "", inQ = false;
+  text = text.replace(/^\uFEFF/,"");
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(inQ){
+      if(ch==='"'){
+        if(text[i+1]==='"'){ field+='"'; i++; } else inQ=false;
+      } else field+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===','){ row.push(field); field=""; }
+      else if(ch==='\n' || ch==='\r'){
+        if(ch==='\r' && text[i+1]==='\n') i++;
+        row.push(field); field="";
+        if(row.some(f=>f.trim()!=="")) rows.push(row);
+        row=[];
+      }
+      else field+=ch;
+    }
+  }
+  row.push(field);
+  if(row.some(f=>f.trim()!=="")) rows.push(row);
+  return rows;
+}
+
+/* Build categories from CSV rows, keeping icon/color/note for known names */
+function buildCats(rows){
+  if(rows.length && /^category$/i.test((rows[0][0]||"").trim())) rows = rows.slice(1);
+  const newCats = [], byName = {};
+  let itemCount = 0, skipped = 0;
+  rows.forEach(r=>{
+    const catName = (r[0]||"").trim();
+    const n = (r[1]||"").trim();
+    const p = (r[2]||"").trim();
+    const note = (r[3]||"").trim();
+    if(!catName){ skipped++; return; }
+    let cat = byName[catName.toLowerCase()];
+    if(!cat){
+      const existing = data.find(c=>c.name.toLowerCase()===catName.toLowerCase())
+                    || DEFAULT_CATS.find(c=>c.name.toLowerCase()===catName.toLowerCase());
+      cat = {
+        id: existing ? existing.id : null,
+        name: catName,
+        icon: existing ? existing.icon : "generic",
+        color: existing ? existing.color : null,
+        note: existing ? existing.note : "",
+        items: []
+      };
+      byName[catName.toLowerCase()] = cat;
+      newCats.push(cat);
+    }
+    if(n && p){ cat.items.push(note?{n,p,note}:{n,p}); itemCount++; }
+    else if(n || p){ skipped++; }
+  });
+  newCats.forEach(c=>{ if(!c.id) c.id = slugIn(c.name, newCats.filter(x=>x.id)); });
+  const usedColors = newCats.map(c=>c.color).filter(Boolean);
+  let pi = 0;
+  newCats.forEach(c=>{
+    if(!c.color){
+      while(usedColors.includes(PALETTE[pi % PALETTE.length])) pi++;
+      c.color = PALETTE[pi % PALETTE.length];
+      usedColors.push(c.color); pi++;
+    }
+  });
+  return {cats:newCats, itemCount, skipped};
+}
+
+/* ================= Remote prices (prices.csv on the website) ================= */
+async function fetchRemote(){
+  const res = await fetch(CSV_PATH + "?nocache=" + Date.now(), {cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP " + res.status);
+  const text = await res.text();
+  const built = buildCats(parseCSV(text));
+  if(!built.cats.length) throw new Error("empty file");
+  const lm = res.headers.get("last-modified");
+  const date = lm ? new Date(lm).toISOString().slice(0,10) : store.updated;
+  return {cats: built.cats, date};
+}
+
+async function loadRemote(force){
+  try{
+    const remote = await fetchRemote();
+    if(force || !store.dirty){
+      store.cats = remote.cats; data = store.cats;
+      store.updated = remote.date; store.dirty = false;
+      save(false);
+      currentCat = null; renderTiles(); show(homeView); hideNotice();
+    }else{
+      notice(`This computer has <strong>unpublished price edits</strong>. They're only visible here until you publish them.
+        <div class="row">
+          <button class="btn btn-primary" id="nPub">Publish to website</button>
+          <button class="btn btn-ghost" id="nDiscard">Discard my edits</button>
+        </div>`);
+      $("nPub").addEventListener("click", ()=>{ hideNotice(); publish(); });
+      $("nDiscard").addEventListener("click", ()=>loadRemote(true));
+    }
+    return true;
+  }catch(e){
+    return false; // offline or opened as a local file — keep local/default data
+  }
+}
+
+/* ================= Publishing (GitHub API) ================= */
+function detectRepo(){
+  try{
+    const h = location.hostname;
+    if(h.endsWith(".github.io")){
+      const owner = h.split(".")[0];
+      const segs = location.pathname.split("/").filter(p=>p && !p.includes("."));
+      return {owner, repo: segs[0] || (owner + ".github.io")};
+    }
+  }catch(e){}
+  return {owner:"", repo:""};
+}
+function getCfg(){
+  try{
+    const raw = localStorage.getItem(CFG_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {...detectRepo(), token:""};
+}
+function saveCfg(cfg){
+  try{ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }catch(e){}
+}
+
+function openSetup(msg){
+  const cfg = getCfg();
+  closeMenu(); show(homeView);
+  notice(`<strong>Publishing setup</strong> — one-time, on the manager's computer only.
+    ${msg?`<div style="color:var(--coral);margin-top:6px">${esc(msg)}</div>`:""}
+    <label>GitHub username</label>
+    <input id="cfgOwner" value="${esc(cfg.owner)}" placeholder="e.g. actionmedicine" autocomplete="off">
+    <label>Repository name</label>
+    <input id="cfgRepo" value="${esc(cfg.repo)}" placeholder="e.g. prices" autocomplete="off">
+    <label>Access token</label>
+    <input id="cfgToken" type="password" value="${esc(cfg.token)}" placeholder="github_pat_…" autocomplete="off">
+    <div class="row">
+      <button class="btn btn-primary" id="cfgSave">Save setup</button>
+      <button class="btn btn-ghost" id="cfgCancel">Cancel</button>
+    </div>
+    <div class="fine">The token is saved only in this browser on this computer — it is never part of the website itself. Create one at github.com → Settings → Developer settings → Fine-grained tokens, with access to just this repository and "Contents: Read and write" permission. Anyone with this token can change the price list, so don't share it.</div>`);
+  $("cfgSave").addEventListener("click", ()=>{
+    const cfg2 = {
+      owner: $("cfgOwner").value.trim(),
+      repo: $("cfgRepo").value.trim(),
+      token: $("cfgToken").value.trim()
+    };
+    saveCfg(cfg2); hideNotice();
+    if(store.dirty) publish();
+  });
+  $("cfgCancel").addEventListener("click", hideNotice);
+}
+
+async function publish(){
+  const cfg = getCfg();
+  if(!cfg.owner || !cfg.repo || !cfg.token){
+    openSetup("Fill these in first, then publishing will start automatically.");
+    return;
+  }
+  closeMenu(); show(homeView);
+  notice("Publishing…");
+  const api = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${CSV_PATH}`;
+  const headers = {
+    "Authorization": "Bearer " + cfg.token,
+    "Accept": "application/vnd.github+json"
+  };
+  try{
+    // current file SHA (needed to update; absent if file doesn't exist yet)
+    let sha = null;
+    const getRes = await fetch(api, {headers});
+    if(getRes.ok){ sha = (await getRes.json()).sha; }
+    else if(getRes.status !== 404){ throw new Error(httpMsg(getRes.status)); }
+
+    const csv = "\uFEFF" + buildCSV();
+    const body = {
+      message: "Update prices (" + new Date().toISOString().slice(0,10) + ")",
+      content: btoa(unescape(encodeURIComponent(csv)))
+    };
+    if(sha) body.sha = sha;
+    const putRes = await fetch(api, {method:"PUT", headers, body: JSON.stringify(body)});
+    if(!putRes.ok) throw new Error(httpMsg(putRes.status));
+
+    store.dirty = false;
+    store.updated = new Date().toISOString().slice(0,10);
+    save(false);
+    notice(`✓ Published! The new prices will be live for everyone at the website link within about a minute.
+      <div class="row"><button class="btn btn-ghost" id="nOk">OK</button></div>`);
+    $("nOk").addEventListener("click", hideNotice);
+  }catch(err){
+    notice(`Couldn't publish: ${esc(err.message||"network error")}.
+      <div class="row">
+        <button class="btn btn-primary" id="nRetry">Try again</button>
+        <button class="btn btn-ghost" id="nSetup">Check setup</button>
+        <button class="btn btn-ghost" id="nClose">Close</button>
+      </div>
+      <div class="fine">Your edits are still saved on this computer — nothing is lost.</div>`);
+    $("nRetry").addEventListener("click", publish);
+    $("nSetup").addEventListener("click", ()=>openSetup());
+    $("nClose").addEventListener("click", hideNotice);
+  }
+}
+function httpMsg(s){
+  if(s===401) return "the access token was rejected (expired or mistyped)";
+  if(s===403) return "the token doesn't have permission for this repository";
+  if(s===404) return "repository not found — check the username and repository name";
+  return "GitHub returned an error (" + s + ")";
+}
+
+/* ================= Tiles ================= */
+function renderTiles(){
+  tileGrid.innerHTML = "";
+
+  const total = data.reduce((s,c)=>s+c.items.length,0);
+  const allTile = document.createElement("button");
+  allTile.className = "tile";
+  allTile.style.setProperty("--tile-c","#44606a");
+  allTile.style.setProperty("--tile-bg","#e8eef0");
+  allTile.innerHTML = `
+    <div class="tile-icon">${ICONS.all}</div>
+    <div>
+      <div class="tile-name">All Prices</div>
+      <div class="tile-count">${total} items in one list</div>
+    </div>`;
+  allTile.addEventListener("click", openAll);
+  tileGrid.appendChild(allTile);
+
+  data.forEach(cat=>{
+    const c = catColor(cat);
+    const b = document.createElement("button");
+    b.className = "tile";
+    b.style.setProperty("--tile-c", c);
+    b.style.setProperty("--tile-bg", c + "18");
+    b.innerHTML = `
+      <div class="tile-icon">${ICONS[cat.icon]||ICONS.generic}</div>
+      <div>
+        <div class="tile-name">${esc(cat.name)}</div>
+        <div class="tile-count">${cat.items.length ? cat.items.length+" items" : "Nothing here yet"}</div>
+      </div>`;
+    b.addEventListener("click", ()=>openCategory(cat.id));
+    tileGrid.appendChild(b);
+  });
+
+  const addTile = document.createElement("button");
+  addTile.className = "tile add-cat";
+  addTile.innerHTML = `
+    <div class="tile-icon" style="background:#f1f0ec;color:#7d7a6e">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div><div class="tile-name">Add category</div><div class="tile-count">Create a new section</div></div>`;
+  addTile.addEventListener("click", ()=>{
+    $("addCatForm").classList.add("open");
+    $("newCatName").focus();
+  });
+  tileGrid.appendChild(addTile);
+}
+
+/* ---- Add category form ---- */
+$("addCatBtn").addEventListener("click", addCategory);
+$("newCatName").addEventListener("keydown", e=>{ if(e.key==="Enter") addCategory(); });
+$("cancelCatBtn").addEventListener("click", ()=>{
+  $("newCatName").value=""; $("addCatForm").classList.remove("open");
+});
+function addCategory(){
+  const name = $("newCatName").value.trim();
+  if(!name) return;
+  const used = data.map(c=>c.color);
+  const color = PALETTE.find(p=>!used.includes(p)) || PALETTE[data.length % PALETTE.length];
+  data.push({ id:slugIn(name, data), name, icon:"generic", color, note:"", items:[] });
+  $("newCatName").value=""; $("addCatForm").classList.remove("open");
+  save(); renderTiles();
+}
+
+/* ================= Price pill ================= */
+function priceHTML(p, color){
+  const contact = /ask|contact|call|tbd/i.test(p);
+  const c = color || "#0e6e6e";
+  return `<div class="price${contact?" contact":""}" style="background:${c}15;color:${c}">${esc(p)}</div>`;
+}
+
+/* ================= Category view ================= */
+function openCategory(id, flashName){
+  currentCat = data.find(c=>c.id===id);
+  if(!currentCat) return;
+  editingIndex = -1;
+  pendingFlash = flashName || null;
+  const c = catColor(currentCat);
+  $("catTitle").innerHTML = `<span class="cat-dot" style="background:${c}"></span>${esc(currentCat.name)}`;
+  $("catNote").innerHTML = currentCat.note ? `<div class="cat-note">${esc(currentCat.note)}</div>` : "";
+  renderCatItems();
+  renderDangerZone();
+  show(catView);
+  window.scrollTo({top:0});
+}
+
+function renderCatItems(){
+  catItems.innerHTML = "";
+  const c = catColor(currentCat);
+  if(currentCat.items.length===0 && editingIndex===-1){
+    catItems.innerHTML = `<div class="empty-msg">No prices in this category yet.<br>Turn on <strong>Edit prices</strong> (gear menu, top right) to add them.</div>`;
+  }
+  currentCat.items.forEach((it,i)=>{
+    const row = document.createElement("div");
+    if(i===editingIndex){
+      row.className = "item editing-item";
+      row.innerHTML = `
+        <div class="edit-fields">
+          <input class="in-name" id="editName" value="${esc(it.n)}" placeholder="Service name">
+          <input class="in-price" id="editPrice" value="${esc(it.p)}" placeholder="Price">
+          <input class="in-note" id="editNote" value="${esc(it.note||"")}" placeholder="Note (optional)">
+          <button class="btn btn-primary" id="saveEdit">Save</button>
+          <button class="btn btn-ghost" id="cancelEdit">Cancel</button>
+        </div>`;
+      catItems.appendChild(row);
+      row.querySelector("#saveEdit").addEventListener("click", ()=>{
+        const n = row.querySelector("#editName").value.trim();
+        const p = row.querySelector("#editPrice").value.trim();
+        const note = row.querySelector("#editNote").value.trim();
+        if(!n || !p) return;
+        currentCat.items[i] = note ? {n,p,note} : {n,p};
+        editingIndex = -1; save(); renderCatItems(); renderTiles();
+      });
+      row.querySelector("#cancelEdit").addEventListener("click", ()=>{ editingIndex=-1; renderCatItems(); });
+      return;
+    }
+    row.className = "item";
+    row.innerHTML = `
+      <div class="item-main">
+        <div class="item-name">${esc(it.n)}</div>
+        ${it.note?`<div class="item-note">${esc(it.note)}</div>`:""}
+      </div>
+      ${priceHTML(it.p, c)}
+      <div class="item-actions">
+        <button class="icon-btn" title="Edit" aria-label="Edit ${esc(it.n)}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button class="icon-btn danger" title="Delete" aria-label="Delete ${esc(it.n)}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>`;
+    const [editB, delB] = row.querySelectorAll(".icon-btn");
+    editB.addEventListener("click", ()=>{ editingIndex=i; renderCatItems(); });
+    delB.addEventListener("click", ()=>{
+      if(delB.dataset.armed){
+        currentCat.items.splice(i,1); save(); renderCatItems(); renderTiles();
+      }else{
+        delB.dataset.armed = "1";
+        delB.style.background = "var(--coral)"; delB.style.color = "#fff"; delB.style.borderColor = "var(--coral)";
+        delB.title = "Tap again to confirm delete";
+        setTimeout(()=>{ delete delB.dataset.armed; delB.removeAttribute("style"); delB.title="Delete"; }, 2500);
+      }
+    });
+    if(pendingFlash && it.n===pendingFlash){
+      row.classList.add("flash");
+      setTimeout(()=>row.scrollIntoView({behavior:"smooth",block:"center"}),60);
+      pendingFlash = null;
+    }
+    catItems.appendChild(row);
+  });
+}
+
+function renderDangerZone(){
+  const dz = $("dangerZone");
+  dz.innerHTML = `
+    <button class="link-danger" id="clearCat">Delete all prices in this category</button>
+    &nbsp;·&nbsp;
+    <button class="link-danger" id="deleteCat">Delete this whole category</button>
+    <div class="confirm-inline hidden" id="dzConfirm"></div>`;
+  const conf = ()=>$("dzConfirm");
+  $("clearCat").addEventListener("click", ()=>{
+    conf().classList.remove("hidden");
+    conf().innerHTML = `Delete everything in “${esc(currentCat.name)}”? <button class="btn btn-danger" id="dzYes">Yes, delete all</button> <button class="btn btn-ghost" id="dzNo">Cancel</button>`;
+    $("dzYes").addEventListener("click", ()=>{
+      currentCat.items = []; save(); renderCatItems(); renderTiles(); conf().classList.add("hidden");
+    });
+    $("dzNo").addEventListener("click", ()=>conf().classList.add("hidden"));
+  });
+  $("deleteCat").addEventListener("click", ()=>{
+    conf().classList.remove("hidden");
+    conf().innerHTML = `Remove the “${esc(currentCat.name)}” category and its ${currentCat.items.length} item${currentCat.items.length===1?"":"s"}? <button class="btn btn-danger" id="dzYes2">Yes, remove it</button> <button class="btn btn-ghost" id="dzNo2">Cancel</button>`;
+    $("dzYes2").addEventListener("click", ()=>{
+      data.splice(data.indexOf(currentCat),1);
+      currentCat = null; save(); renderTiles(); show(homeView);
+    });
+    $("dzNo2").addEventListener("click", ()=>conf().classList.add("hidden"));
+  });
+}
+
+/* ================= Add item ================= */
+$("addBtn").addEventListener("click", addItem);
+["newName","newPrice","newNote"].forEach(id=>{
+  $(id).addEventListener("keydown", e=>{ if(e.key==="Enter") addItem(); });
+});
+function addItem(){
+  const n=$("newName").value.trim(), p=$("newPrice").value.trim(), note=$("newNote").value.trim();
+  if(!n || !p){ return; }
+  currentCat.items.push(note?{n,p,note}:{n,p});
+  $("newName").value=""; $("newPrice").value=""; $("newNote").value="";
+  save(); renderCatItems(); renderTiles(); $("newName").focus();
+}
+
+/* ================= All Prices view ================= */
+function openAll(){
+  currentCat = null;
+  allItems.innerHTML = "";
+  data.forEach(cat=>{
+    if(!cat.items.length) return;
+    const c = catColor(cat);
+    const head = document.createElement("div");
+    head.className = "group-head";
+    head.innerHTML = `<span class="cat-dot" style="background:${c}"></span>${esc(cat.name)}`;
+    allItems.appendChild(head);
+    const list = document.createElement("div");
+    list.className = "item-list";
+    cat.items.forEach(it=>{
+      const row = document.createElement("button");
+      row.className = "item";
+      row.style.textAlign = "left";
+      row.title = "Open " + cat.name;
+      row.innerHTML = `
+        <div class="item-main">
+          <div class="item-name">${esc(it.n)}</div>
+          ${it.note?`<div class="item-note">${esc(it.note)}</div>`:""}
+        </div>
+        ${priceHTML(it.p, c)}`;
+      row.addEventListener("click", ()=>openCategory(cat.id, it.n));
+      list.appendChild(row);
+    });
+    allItems.appendChild(list);
+  });
+  if(!allItems.children.length){
+    allItems.innerHTML = `<div class="empty-msg">No prices anywhere yet.</div>`;
+  }
+  show(allView);
+  window.scrollTo({top:0});
+}
+
+/* ================= Search ================= */
+function runSearch(q){
+  const term = q.trim().toLowerCase();
+  if(!term){ clearBtn.style.display="none"; show(currentCat?catView:homeView); if(!currentCat) renderTiles(); return; }
+  clearBtn.style.display="flex";
+  const results = [];
+  data.forEach(cat=>{
+    cat.items.forEach(it=>{
+      const hay = (it.n+" "+(it.note||"")+" "+it.p+" "+cat.name).toLowerCase();
+      if(hay.includes(term)) results.push({cat,it});
+    });
+  });
+  $("searchTitle").textContent = results.length
+    ? `${results.length} result${results.length===1?"":"s"} for “${q.trim()}”`
+    : `No results for “${q.trim()}”`;
+  searchItems.innerHTML = results.length ? "" :
+    `<div class="empty-msg">Try a shorter word — for example “flu”, “titer”, or “member”.</div>`;
+  results.forEach(r=>{
+    const c = catColor(r.cat);
+    const row = document.createElement("button");
+    row.className = "item";
+    row.style.textAlign = "left";
+    row.innerHTML = `
+      <div class="item-main">
+        <div class="item-cat" style="color:${c}">${esc(r.cat.name)}</div>
+        <div class="item-name">${esc(r.it.n)}</div>
+        ${r.it.note?`<div class="item-note">${esc(r.it.note)}</div>`:""}
+      </div>
+      ${priceHTML(r.it.p, c)}`;
+    row.addEventListener("click", ()=>{
+      searchInput.value=""; clearBtn.style.display="none";
+      openCategory(r.cat.id, r.it.n);
+    });
+    searchItems.appendChild(row);
+  });
+  show(searchView);
+}
+searchInput.addEventListener("input", e=>runSearch(e.target.value));
+clearBtn.addEventListener("click", ()=>{ searchInput.value=""; runSearch(""); searchInput.focus(); });
+
+/* ================= CSV export / import ================= */
+$("exportBtn").addEventListener("click", ()=>{
+  closeMenu();
+  const csv = buildCSV();
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "action-medicine-prices-" + store.updated + ".csv";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+});
+
+$("importBtn").addEventListener("click", ()=>{ closeMenu(); $("importFile").click(); });
+$("importFile").addEventListener("change", e=>{
+  const file = e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    let built;
+    try{ built = buildCats(parseCSV(String(reader.result))); }
+    catch(err){ msgNotice("Couldn't read that file as CSV."); return; }
+    if(!built.cats.length){ msgNotice("No usable rows found. Expected columns: Category, Service, Price, Note."); return; }
+    show(homeView);
+    notice(`Replace all current prices with <strong>${built.itemCount} items in ${built.cats.length} categories</strong> from “${esc(file.name)}”?${built.skipped?` (${built.skipped} incomplete row${built.skipped===1?"":"s"} will be skipped.)`:""} You'll still need to publish afterward to make it live for everyone.
+      <div class="row">
+        <button class="btn btn-primary" id="impYes">Yes, import</button>
+        <button class="btn btn-ghost" id="impNo">Cancel</button>
+      </div>`);
+    $("impYes").addEventListener("click", ()=>{
+      store.cats = built.cats; data = store.cats;
+      currentCat = null; save(); renderTiles(); show(homeView); hideNotice();
+    });
+    $("impNo").addEventListener("click", hideNotice);
+  };
+  reader.readAsText(file);
+});
+function msgNotice(msg){
+  show(homeView);
+  notice(`${esc(msg)} <div class="row"><button class="btn btn-ghost" id="nOk2">OK</button></div>`);
+  $("nOk2").addEventListener("click", hideNotice);
+}
+
+/* ================= Gear menu ================= */
+const gearBtn = $("gearBtn"), gearMenu = $("gearMenu");
+function closeMenu(){ gearMenu.classList.remove("open"); gearBtn.setAttribute("aria-expanded","false"); }
+gearBtn.addEventListener("click", e=>{
+  e.stopPropagation();
+  const open = gearMenu.classList.toggle("open");
+  gearBtn.setAttribute("aria-expanded", open);
+});
+document.addEventListener("click", e=>{
+  if(gearMenu.classList.contains("open") && !gearMenu.contains(e.target) && e.target!==gearBtn) closeMenu();
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
+
+function setEditing(on){
+  document.body.classList.toggle("editing", on);
+  $("editToggle").classList.toggle("active", on);
+  gearBtn.classList.toggle("on", on);
+  $("editToggle").setAttribute("aria-pressed", on);
+  $("editLabel").textContent = on ? "Done editing" : "Edit prices";
+  if(!on){ $("addCatForm").classList.remove("open"); }
+  if(currentCat) renderCatItems();
+}
+
+$("editToggle").addEventListener("click", ()=>{
+  closeMenu();
+  if(document.body.classList.contains("editing")){ setEditing(false); return; }
+  // Ask for the staff password — purely to prevent accidental changes
+  currentCat = null; editingIndex = -1; renderTiles(); show(homeView);
+  notice(`<strong>Staff password</strong> — this just makes sure prices aren't changed by accident.
+    <div class="row">
+      <input id="pwIn" type="text" placeholder="Password" autocomplete="off" autocapitalize="none">
+      <button class="btn btn-primary" id="pwGo">Unlock editing</button>
+      <button class="btn btn-ghost" id="pwNo">Cancel</button>
+    </div>
+    <div class="fine">The password is <strong>action</strong>.</div>`);
+  const tryPw = ()=>{
+    if($("pwIn").value.trim().toLowerCase() === EDIT_PASSWORD){
+      hideNotice(); setEditing(true);
+    }else{
+      $("pwIn").value = "";
+      $("pwIn").placeholder = "Not quite — the password is action";
+      $("pwIn").focus();
+    }
+  };
+  $("pwGo").addEventListener("click", tryPw);
+  $("pwIn").addEventListener("keydown", e=>{ if(e.key==="Enter") tryPw(); });
+  $("pwNo").addEventListener("click", hideNotice);
+  $("pwIn").focus();
+});
+
+$("publishBtn").addEventListener("click", publish);
+$("setupBtn").addEventListener("click", ()=>openSetup());
+$("reloadBtn").addEventListener("click", async ()=>{
+  closeMenu(); show(homeView);
+  if(store.dirty){
+    notice(`Reloading from the website will <strong>discard the unpublished edits</strong> on this computer. Continue?
+      <div class="row">
+        <button class="btn btn-danger" id="rlYes">Yes, discard & reload</button>
+        <button class="btn btn-ghost" id="rlNo">Cancel</button>
+      </div>`);
+    $("rlYes").addEventListener("click", async ()=>{
+      hideNotice();
+      const ok = await loadRemote(true);
+      if(!ok) msgNotice("Couldn't reach the website — check the internet connection. Your local data is unchanged.");
+    });
+    $("rlNo").addEventListener("click", hideNotice);
+  }else{
+    const ok = await loadRemote(true);
+    if(!ok) msgNotice("Couldn't reach the website — check the internet connection.");
+  }
+});
+
+/* ================= Navigation ================= */
+$("backBtn").addEventListener("click", ()=>{ currentCat=null; editingIndex=-1; renderTiles(); show(homeView); });
+$("backBtnAll").addEventListener("click", ()=>{ renderTiles(); show(homeView); });
+
+/* ================= Init ================= */
+renderUpdated();
+renderTiles();
+loadRemote(false);
+</script>
+</body>
+</html>
